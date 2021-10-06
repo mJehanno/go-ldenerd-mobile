@@ -12,10 +12,10 @@ import (
 var IsUserLogged bool = false
 
 func main() {
-	goldenerApp := app.New()
+	goldenerApp := app.NewWithID("com.mjehanno.goldener")
+	goldenerApp.SetIcon(resourceGoldCoinPng)
 	mainWindow := goldenerApp.NewWindow("Goldener")
 	mainWindow.Resize(fyne.NewSize(800, 700))
-	goldenerApp.SetIcon(resourceGobelinJpg)
 	gTab := container.NewTabItem("Golds", pages.GetGoldPage(mainWindow))
 	tTab := container.NewTabItem("Transactions", pages.GetTransactionsPage(mainWindow))
 	tabs := container.NewAppTabs(gTab, tTab)

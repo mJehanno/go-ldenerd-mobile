@@ -40,8 +40,15 @@ func GetLoginScreen(w fyne.Window, newC *fyne.Container) *fyne.Container {
 		} else {
 			GoldBinding.Set(service.GetGold())
 			GoldDetailBinding.Set(service.GetGoldDetail())
-			w.SetContent(newC)
+			history := service.GetHistory()
+			inter := make([]interface{}, len(history))
 
+			for i, v := range history {
+				inter[i] = v
+			}
+			TransactionBinding.Set(inter)
+			newC.Refresh()
+			w.SetContent(newC)
 		}
 	})
 

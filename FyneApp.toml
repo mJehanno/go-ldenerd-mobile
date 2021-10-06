@@ -1,3 +1,4 @@
 [Details]
-  Icon = "./gobelin.jpg"
-  Build = 5
+  Icon = "./gold-coin.png"
+  ID = "com.mjehanno.goldener"
+  Build = 2

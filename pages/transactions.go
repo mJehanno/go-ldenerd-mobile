@@ -1,27 +1,53 @@
 package pages
 
 import (
-	"fmt"
 	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/mjehanno/go-ldenerd-mobile/service"
 	"github.com/mjehanno/go-ldenerd-mobile/widgets"
 )
 
-var TransactionBinding binding.DataList = binding.NewUntypedList()
+var TransactionBinding binding.UntypedList = binding.NewUntypedList()
 
 func GetTransactionsPage(w fyne.Window) *fyne.Container {
 
-	c := container.NewCenter(widget.NewButton("Add Transaction", func() {
-		getTransactionFormDialog(w)
-	}))
+	list := widget.NewListWithData(
+		TransactionBinding,
+		func() fyne.CanvasObject {
+			tType := widget.NewLabel("")
+			tAmount := widget.NewLabel("")
+			tReason := widget.NewLabel("")
+			return container.NewVBox(tType, tAmount, tReason)
+		},
+		func(di binding.DataItem, co fyne.CanvasObject) {
+			v, _ := di.(binding.Untyped).Get()
+			tType := binding.NewString()
+			tAmount := binding.NewString()
+			tReason := binding.NewString()
+			tType.Set(v.(service.Transaction).Type.String())
+			co.(*fyne.Container).Objects[0].(*widget.Label).Bind(tType)
+			coins := service.ConvertSumOfAmountToCoin(v.(service.Transaction).Amount)
+			tAmount.Set(coins.String())
+			co.(*fyne.Container).Objects[1].(*widget.Label).Bind(tAmount)
+			tReason.Set(v.(service.Transaction).Reason)
+			co.(*fyne.Container).Objects[2].(*widget.Label).Bind(tReason)
+		},
+	)
 
-	return c
+	listContainer := container.NewMax(list)
+	addButton := widget.NewButton("Add Transaction", func() {
+		getTransactionFormDialog(w)
+	})
+	buttonContainer := container.NewGridWithRows(3, layout.NewSpacer(), layout.NewSpacer(), container.NewVBox(addButton))
+	page := container.NewBorder(nil, nil, nil, buttonContainer, listContainer)
+
+	return page
 }
 
 func getTransactionFormDialog(w fyne.Window) {
@@ -71,7 +97,6 @@ func getTransactionFormDialog(w fyne.Window) {
 					Value:    cValue,
 					Currency: service.Copper,
 				}
-				fmt.Println("transaction type : ", transactionInput.Selected)
 				t := service.Transaction{
 					Type: service.StringToTransactionType(transactionInput.Selected),
 					Amount: []service.Coin{
@@ -83,7 +108,22 @@ func getTransactionFormDialog(w fyne.Window) {
 				service.AddTransaction(t)
 				GoldBinding.Set(service.GetGold())
 				GoldDetailBinding.Set(service.GetGoldDetail())
+				history := service.GetHistory()
+				inter := make([]interface{}, len(history))
+
+				for i, v := range history {
+					inter[i] = v
+				}
+				TransactionBinding.Set(inter)
 			}
 		}, w)
 	d.Show()
 }
+
+/*coins := service.ConvertSumOfAmountToCoin(history[lii].(service.Transaction).Amount)
+co.(*fyne.Container).Objects[1].(*widget.Label).SetText(
+	coins.String(),
+)
+co.(*fyne.Container).Objects[2].(*widget.Label).SetText(
+	history[lii].(service.Transaction).Reason,
+)*/
